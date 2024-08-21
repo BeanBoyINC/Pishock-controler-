@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PiShock Controller</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #2e2e2e;
+        color: white;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 20px;
+      }
+      .section {
+        width: 45%;
+        margin: 10px;
+        background-color: #444;
+        padding: 20px;
+        border-radius: 5px;
+      }
+      .section h2 {
+        margin-top: 0;
+      }
+      .slider {
+        width: 100%;
+        margin: 10px 0;
+      }
+      .button {
+        background-color: #555;
+        border: none;
+        color: white;
+        padding: 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 10px 0;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      .button:hover {
+        background-color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="section">
+        <h2>Shock Settings</h2>
+        <label for="shock_intensity">Intensity (1-100):</label>
+        <input
+          type="range"
+          id="shock_intensity"
+          min="1"
+          max="100"
+          value="50"
+          class="slider"
+        />
+        <p>Value: <span id="shock_intensity_value">50</span></p>
+        <label for="shock_duration">Duration (1-15 sec):</label>
+        <input
+          type="range"
+          id="shock_duration"
+          min="1"
+          max="15"
+          value="5"
+          class="slider"
+        />
+        <p>Value: <span id="shock_duration_value">5</span></p>
+        <button class="button" onclick="sendCommand('shock')">
+          Apply Shock
+        </button>
+      </div>
+      <div class="section">
+        <h2>Vibrate Settings</h2>
+        <label for="vibrate_intensity">Intensity (1-100):</label>
+        <input
+          type="range"
+          id="vibrate_intensity"
+          min="1"
+          max="100"
+          value="50"
+          class="slider"
+        />
+        <p>Value: <span id="vibrate_intensity_value">50</span></p>
+        <label for="vibrate_duration">Duration (1-15 sec):</label>
+        <input
+          type="range"
+          id="vibrate_duration"
+          min="1"
+          max="15"
+          value="5"
+          class="slider"
+        />
+        <p>Value: <span id="vibrate_duration_value">5</span></p>
+        <button class="button" onclick="sendCommand('vibrate')">
+          Apply Vibration
+        </button>
+      </div>
+      <div class="section">
+        <h2>Beep Settings</h2>
+        <label for="beep_duration">Duration (1-15 sec):</label>
+        <input
+          type="range"
+          id="beep_duration"
+          min="1"
+          max="15"
+          value="5"
+          class="slider"
+        />
+        <p>Value: <span id="beep_duration_value">5</span></p>
+        <button class="button" onclick="sendCommand('beep')">Apply Beep</button>
+      </div>
+      <div class="section">
+        <h2>Pulse Settings</h2>
+        <label for="pulse_min_intensity">Min Intensity (1-100):</label>
+        <input
+          type="range"
+          id="pulse_min_intensity"
+          min="1"
+          max="100"
+          value="10"
+          class="slider"
+        />
+        <p>Value: <span id="pulse_min_intensity_value">10</span></p>
+        <label for="pulse_max_intensity">Max Intensity (1-100):</label>
+        <input
+          type="range"
+          id="pulse_max_intensity"
+          min="1"
+          max="100"
+          value="90"
+          class="slider"
+        />
+        <p>Value: <span id="pulse_max_intensity_value">90</span></p>
+        <label for="pulse_duration">Duration per pulse (1-15 sec):</label>
+        <input
+          type="range"
+          id="pulse_duration"
+          min="1"
+          max="15"
+          value="5"
+          class="slider"
+        />
+        <p>Value: <span id="pulse_duration_value">5</span></p>
+        <label for="pulse_interval">Interval between pulses (sec):</label>
+        <input
+          type="range"
+          id="pulse_interval"
+          min="0.1"
+          max="10.0"
+          step="0.1"
+          value="1.0"
+          class="slider"
+        />
+        <p>Value: <span id="pulse_interval_value">1.0</span></p>
+        <label for="pulse_count">Number of pulses:</label>
+        <input
+          type="range"
+          id="pulse_count"
+          min="1"
+          max="50"
+          value="5"
+          class="slider"
+        />
+        <p>Value: <span id="pulse_count_value">5</span></p>
+        <button class="button" onclick="sendCommand('pulse')">
+          Apply Pulse
+        </button>
+      </div>
+      <div class="section">
+        <h2>Random Command</h2>
+        <label for="random_duration">Duration (1-15 sec):</label>
+        <input
+          type="range"
+          id="random_duration"
+          min="1"
+          max="15"
+          value="5"
+          class="slider"
+        />
+        <p>Value: <span id="random_duration_value">5</span></p>
+        <button class="button" onclick="sendCommand('random')">
+          Apply Random
+        </button>
+      </div>
+    </div>
+    <script>
+      document.querySelectorAll(".slider").forEach((slider) => {
+        slider.addEventListener("input", function () {
+          document.getElementById(slider.id + "_value").innerText =
+            slider.value;
+        });
+      });
+
+      function sendCommand(command) {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/command", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(
+          JSON.stringify({
+            command: command,
+            values: {
+              shock_intensity: document.getElementById("shock_intensity").value,
+              shock_duration: document.getElementById("shock_duration").value,
+              vibrate_intensity:
+                document.getElementById("vibrate_intensity").value,
+              vibrate_duration:
+                document.getElementById("vibrate_duration").value,
+              beep_duration: document.getElementById("beep_duration").value,
+              pulse_min_intensity: document.getElementById(
+                "pulse_min_intensity"
+              ).value,
+              pulse_max_intensity: document.getElementById(
+                "pulse_max_intensity"
+              ).value,
+              pulse_duration: document.getElementById("pulse_duration").value,
+              pulse_interval: document.getElementById("pulse_interval").value,
+              pulse_count: document.getElementById("pulse_count").value,
+              random_duration: document.getElementById("random_duration").value,
+            },
+          })
+        );
+      }
+    </script>
+  </body>
+</html>
