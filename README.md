@@ -24,3 +24,7 @@ run **`pip install -r requirements.txt `**: to install all the stuff you need to
 
 You can do **`python main.py`**: to run normaly with a little gui.
 you can also do **`python main.py --web`**: to open a little web interface if you like that more.
+
+## What it looks like
+
+![Main_GUI](https://imgur.com/a/I2REgFS)
