@@ -31,7 +31,7 @@ def create_gui(pishock):
     dpg.create_context()
 
     # Create the main window with specified size
-    with dpg.window(label="PiShock Controller | Made By Darkutom", width=1040, height=800, autosize=False):
+    with dpg.window(label="PiShock Controller", width=1040, height=800, autosize=False):
         # Create two columns for layout
         with dpg.group(horizontal=True):
             # Left Column
@@ -84,7 +84,7 @@ def create_gui(pishock):
                     dpg.add_plot_axis(dpg.mvYAxis, label="Intensity")
 
     # Create the viewport with the specified size
-    dpg.create_viewport(title='PiShock Controller | Made By Darkutom', width=1040, height=800)
+    dpg.create_viewport(title='PiShock Controller', width=1040, height=800)
     dpg.setup_dearpygui()
     dpg.show_viewport()
     dpg.start_dearpygui()
