@@ -1,84 +1,62 @@
-import dearpygui.dearpygui as dpg
+import sys
+import json
+import os
+import tkinter as tk
+from tkinter import simpledialog
+from pishock import PiShock
+from gui import create_gui
+import web_server  
 
-def create_gui(pishock):
-    def shock_command():
-        intensity = dpg.get_value("shock_intensity")
-        duration = dpg.get_value("shock_duration")
-        pishock.shock(intensity, duration)
+JSON_FILE = "credentials.json"
 
-    def vibrate_command():
-        intensity = dpg.get_value("vibrate_intensity")
-        duration = dpg.get_value("vibrate_duration")
-        pishock.vibrate(intensity, duration)
+def save_credentials(username, apikey, code):
+    """Save the provided credentials to the JSON file."""
+    with open(JSON_FILE, "w") as f:
+        json.dump({"username": username, "apikey": apikey, "code": code}, f)
 
-    def beep_command():
-        duration = dpg.get_value("beep_duration")
-        pishock.beep(duration)
+def load_credentials():
+    """Load the credentials from the JSON file."""
+    if os.path.exists(JSON_FILE):
+        with open(JSON_FILE, "r") as f:
+            return json.load(f)
+    return None
 
-    def pulse_command():
-        min_intensity = dpg.get_value("pulse_min_intensity")
-        max_intensity = dpg.get_value("pulse_max_intensity")
-        duration = dpg.get_value("pulse_duration")
-        interval = dpg.get_value("pulse_interval")
-        count = dpg.get_value("pulse_count")
-        pishock.pulse(min_intensity, max_intensity, duration, interval, count)
+def prompt_for_credentials():
+    """Prompt the user for credentials using a Tkinter GUI."""
+    root = tk.Tk()
+    root.withdraw()  
 
-    def random_command():
-        duration = dpg.get_value("random_duration")
-        pishock.random_command(duration)
+    username = simpledialog.askstring("Input", "Enter your username:")
+    apikey = simpledialog.askstring("Input", "Enter your API key:")
+    code = simpledialog.askstring("Input", "Enter your code:")
 
-    dpg.create_context()
+    if username and apikey and code:
+        save_credentials(username, apikey, code)
+        return {"username": username, "apikey": apikey, "code": code}
+    else:
+        raise ValueError("All fields are required.")
 
-    with dpg.window(label="PiShock Controller | Made By BeanBoyINC", width=1040, height=800, autosize=False):
-        with dpg.group(horizontal=True):
-            with dpg.child_window(width=500, height=780):  
-                dpg.add_text("Shock Settings", bullet=True)
-                with dpg.group():
-                    dpg.add_slider_int(label="Intensity (1-100)", tag="shock_intensity", min_value=1, max_value=100, default_value=50, width=350)
-                    dpg.add_slider_int(label="Duration (1-15 sec)", tag="shock_duration", min_value=1, max_value=15, default_value=5, width=350)
-                    dpg.add_button(label="Apply Shock", callback=shock_command, width=350, height=50)
+def main():
+    credentials = load_credentials()
 
-                dpg.add_separator()
+    if credentials:
+        username = credentials["username"]
+        apikey = credentials["apikey"]
+        code = credentials["code"]
+    else:
+        credentials = prompt_for_credentials()
+        username = credentials["username"]
+        apikey = credentials["apikey"]
+        code = credentials["code"]
 
-                dpg.add_text("Vibrate Settings", bullet=True)
-                with dpg.group():
-                    dpg.add_slider_int(label="Intensity (1-100)", tag="vibrate_intensity", min_value=1, max_value=100, default_value=50, width=350)
-                    dpg.add_slider_int(label="Duration (1-15 sec)", tag="vibrate_duration", min_value=1, max_value=15, default_value=5, width=350)
-                    dpg.add_button(label="Apply Vibration", callback=vibrate_command, width=350, height=50)
+    pishock = PiShock(username, apikey, code)
 
-                dpg.add_separator()
+    if '--web' in sys.argv:
+        print("Starting web server...")
+        web_server.start_web_server()
+    else:
+        print("Starting GUI...")
+        create_gui(pishock)
 
-                dpg.add_text("Beep Settings", bullet=True)
-                with dpg.group():
-                    dpg.add_slider_int(label="Duration (1-15 sec)", tag="beep_duration", min_value=1, max_value=15, default_value=5, width=350)
-                    dpg.add_button(label="Apply Beep", callback=beep_command, width=350, height=50)
-
-            with dpg.child_window(width=500, height=780):  
-                dpg.add_text("Pulse Settings", bullet=True)
-                with dpg.group():
-                    dpg.add_slider_int(label="Min Intensity (1-100)", tag="pulse_min_intensity", min_value=1, max_value=100, default_value=10, width=320)
-                    dpg.add_slider_int(label="Max Intensity (1-100)", tag="pulse_max_intensity", min_value=1, max_value=100, default_value=90, width=320)
-                    dpg.add_slider_int(label="Duration per pulse (1-15 sec)", tag="pulse_duration", min_value=1, max_value=15, default_value=5, width=320)
-                    dpg.add_slider_float(label="Interval between pulses (sec)", tag="pulse_interval", min_value=0.1, max_value=10.0, default_value=1.0, width=320)
-                    dpg.add_slider_int(label="Number of pulses", tag="pulse_count", min_value=1, max_value=50, default_value=5, width=320)
-                    dpg.add_button(label="Apply Pulse", callback=pulse_command, width=550, height=50)
-
-                dpg.add_separator()
-
-                dpg.add_text("Random Command", bullet=True)
-                with dpg.group():
-                    dpg.add_slider_int(label="Duration (1-15 sec)", tag="random_duration", min_value=1, max_value=15, default_value=5, width=350)
-                    dpg.add_button(label="Apply Random", callback=random_command, width=550, height=50)
-
-                dpg.add_separator()
-                dpg.add_text("Intensity Graph", bullet=True)
-                with dpg.plot(label="Intensity vs Time", height=300, width=460):
-                    dpg.add_plot_legend()
-                    dpg.add_plot_axis(dpg.mvXAxis, label="Time (s)")
-                    dpg.add_plot_axis(dpg.mvYAxis, label="Intensity")
-
-    dpg.create_viewport(title='PiShock Controller | Made By BeanBoyInc', width=1040, height=800)
-    dpg.setup_dearpygui()
-    dpg.show_viewport()
-    dpg.start_dearpygui()
-    dpg.destroy_context()
+if __name__ == "__main__":
+    main()
